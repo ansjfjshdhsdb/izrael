@@ -1,0 +1,18 @@
+{
+  "notice": "Демонстрационные записи для проверки интерфейса. Они не подтверждают полномочия реальных игроков.",
+  "updatedAt": "2026-09-25",
+  "factions": [
+    {"id": "sbs", "name": "СБС", "roles": ["Сотрудник СБС", "Руководитель СБС"]},
+    {"id": "admin", "name": "Администрация", "roles": ["Администратор", "Главный администратор"]},
+    {"id": "court", "name": "Суд", "roles": ["Судья", "Председатель суда"]},
+    {"id": "nps", "name": "НПС", "roles": ["Сотрудник НПС", "Руководитель НПС"]},
+    {"id": "city", "name": "Мэрия", "roles": ["Сотрудник мэрии", "Мэр"]},
+    {"id": "prosecution", "name": "Прокуратура", "roles": ["Прокурор", "Генеральный прокурор"]},
+    {"id": "mossad", "name": "Моссад", "roles": ["Сотрудник Моссад", "Руководитель Моссад"]}
+  ],
+  "records": [
+    {"id": "ISRP-DEMO-001", "nickname": "Demo_SBS", "faction": "sbs", "role": "Сотрудник СБС", "license": "SBS-DEMO-001", "issuedAt": "2026-01-01", "expiresAt": "2027-01-01", "status": "active", "demo": true},
+    {"id": "ISRP-DEMO-002", "nickname": "Demo_Judge", "faction": "court", "role": "Судья", "license": "COURT-DEMO-002", "issuedAt": "2026-01-01", "expiresAt": "2027-01-01", "status": "active", "demo": true},
+    {"id": "ISRP-DEMO-003", "nickname": "Demo_NPS", "faction": "nps", "role": "Сотрудник НПС", "license": "NPS-DEMO-003", "issuedAt": "2025-01-01", "expiresAt": "2025-12-31", "status": "expired", "demo": true}
+  ]
+}

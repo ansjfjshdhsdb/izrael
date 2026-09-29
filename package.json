@@ -1,0 +1,15 @@
+{
+  "name": "isrp-portal",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build:css": "tailwindcss -i ./src.css -o ./styles.css --minify",
+    "preview": "http-server . -p 8000 -c-1"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.13",
+    "daisyui": "^5.1.18",
+    "http-server": "^14.1.1",
+    "tailwindcss": "^4.1.13"
+  }
+}

@@ -32,34 +32,46 @@ function intro(title, description = '', detail = '') {
 }
 
 const scenes = [
-  {slug: 'bridge', title: 'Ночной мост'},
+  {slug: 'boulevard', title: 'Городской бульвар'},
   {slug: 'winter', title: 'Зимняя площадь'},
-  {slug: 'boulevard', title: 'Городской бульвар'}
+  {slug: 'bridge', title: 'Ночной мост'}
 ];
 
 function homeView() {
-  const directories = [
-    ['rules', 'Правила сервера', quantity(documents.rules.length, 'раздел', 'раздела', 'разделов')],
-    ['criminal', 'Криминальный кодекс', quantity(documents.criminal.length, 'раздел', 'раздела', 'разделов')],
-    ['powers', 'Полномочия служб', quantity(documents.powers.length, 'служба', 'службы', 'служб')]
-  ];
   const descriptions = [
-    'Освещённый мост, грузовик и высотка на ночной набережной.',
+    'Машины на стоянке у бульвара с пальмами.',
     'Полицейские машины и пожарная лестница на заснеженной площади.',
-    'Машины на стоянке у бульвара с пальмами.'
+    'Освещённый мост, грузовик и высотка на ночной набережной.'
   ];
-  app.innerHTML = `<header class="portal-intro">
-      <h1>UKR Israel</h1>
-      <form id="home-lookup" class="quick-check">
-        <div class="check-label"><label for="home-query">Проверка игрока</label><a id="attorney-link" href="#lawyers">Проверить адвоката</a></div>
-        <div class="check-field"><input id="home-query" type="search" maxlength="100" placeholder="Ник, ID или номер лицензии" required><button type="submit">Найти</button></div>
-      </form>
-    </header>
-    <section class="city-gallery" aria-label="Кадры UKR Israel" aria-roledescription="карусель">
-      <div class="city-frame">${scenes.map((scene,i) => `<img class="city-image${i === 0 ? ' selected' : ''}" src="./media/${scene.slug}.webp" alt="${descriptions[i]}" aria-hidden="${i !== 0}" ${i ? '' : 'fetchpriority="high"'}>`).join('')}</div>
-      <div class="scene-selector" role="group" aria-label="Выбрать кадр">${scenes.map((scene,i) => `<button type="button" aria-pressed="${i === 0}">${scene.title}</button>`).join('')}</div>
+  app.innerHTML = `<section class="city-gallery" aria-label="Кадры UKR Israel" aria-roledescription="карусель">
+      <div class="city-frame" data-scene="boulevard">
+        ${scenes.map((scene,i) => `<img class="city-image${i === 0 ? ' selected' : ''}" src="./media/${scene.slug}.webp" alt="${descriptions[i]}" aria-hidden="${i !== 0}" ${i ? 'loading="lazy"' : 'fetchpriority="high"'}>`).join('')}
+        <h1>UKR ISRAEL</h1>
+        <img class="palm-layer" src="./media/boulevard-palms.webp" alt="">
+      </div>
+      <div class="gallery-foot">
+        <span class="scene-title" aria-live="polite">${scenes[0].title}</span>
+        <div class="scene-selector" role="group" aria-label="Выбрать кадр">${scenes.map((scene,i) => `<button type="button" aria-pressed="${i === 0}" aria-label="${scene.title}" title="${scene.title}"><img src="./media/${scene.slug}.webp" alt=""></button>`).join('')}</div>
+      </div>
     </section>
-    <nav class="document-links" aria-label="Документы сервера">${directories.map(([route,title,count]) => `<a href="#${route}"><strong>${title}</strong><small>${count}</small></a>`).join('')}</nav>`;
+    <section class="player-services" aria-label="Игрокам">
+      <form id="home-lookup" class="quick-check">
+        <h2><label for="home-query">Проверка<br> игрока</label></h2>
+        <div class="pass-art" aria-hidden="true"><b>ISRP</b></div>
+        <div class="check-field"><input id="home-query" type="search" maxlength="100" placeholder="Ник, ID или лицензия" required><button type="submit">Найти</button></div>
+        <a id="attorney-link" href="#lawyers">Проверить адвоката</a>
+      </form>
+      <a class="doc-tile rules-tile" href="#rules">
+        <small>${quantity(documents.rules.length,'раздел','раздела','разделов')}</small><strong>Правила<br> сервера</strong>
+        <div class="book-art" aria-hidden="true"><b>ISRP</b></div>
+      </a>
+      <a class="doc-tile code-tile" href="#criminal">
+        <small>${quantity(documents.criminal.length,'раздел','раздела','разделов')}</small><strong>Криминальный<br> кодекс</strong>
+      </a>
+      <a class="doc-tile powers-tile" href="#powers">
+        <small>${quantity(documents.powers.length,'служба','службы','служб')}</small><strong>Полномочия<br> служб</strong>
+      </a>
+    </section>`;
 
   const gallery = app.querySelector('.city-gallery');
   const photos = [...gallery.querySelectorAll('.city-image')];
@@ -67,6 +79,8 @@ function homeView() {
   let current = 0;
   function select(index) {
     current = (index + scenes.length) % scenes.length;
+    gallery.querySelector('.city-frame').dataset.scene = scenes[current].slug;
+    gallery.querySelector('.scene-title').textContent = scenes[current].title;
     buttons.forEach((button,i) => {
       const selected = current === i;
       button.setAttribute('aria-pressed', String(selected));

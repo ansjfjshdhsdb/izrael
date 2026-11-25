@@ -47,53 +47,66 @@ const scenes = [
 ];
 
 function homeView() {
-  const items = [
-    ['verify','verification','Лицензии игроков','Проверить<br>игрока',
-      '<div class="pass-art"><div class="pass-top">ISRP <b>ID</b></div><div class="pass-detail"><i class="id-photo"></i><div class="id-lines"></div></div><div class="barcode"></div></div>'],
-    ['rules','rules',quantity(documents.rules.length,'раздел','раздела','разделов'),'Правила<br>сервера',
-      '<div class="book-art"><small>ISRP</small><b>§</b><i></i></div>'],
-    ['powers','department','Структура сервера','Органы<br>и службы',
-      '<div class="map-art"><div></div><i class="map-marker"></i></div>']
+  const docs = [
+    {route:'rules',title:'Правила сервера',detail:quantity(documents.rules.length,'раздел','раздела','разделов'),symbol:'book'},
+    {route:'criminal',title:'Криминальный кодекс',detail:quantity(documents.criminal.length,'раздел','раздела','разделов'),symbol:'scale'},
+    {route:'powers',title:'Полномочия служб',detail:quantity(documents.powers.length,'служба','службы','служб'),symbol:'shield'}
   ];
-  app.innerHTML = `<section class="reel" aria-label="Виды города" aria-roledescription="карусель">
-    ${scenes.map((s,i) => `<img class="scene-image ${i ? '' : 'active'}" src="./media/${s.slug}.webp" alt="" ${i ? '' : 'fetchpriority="high"'}>`).join('')}
-    <h1 class="mastword">ISRAEL RP</h1><img class="foreground" src="./media/bridge-foreground.webp" alt="">
-    <div class="reel-foot"><span id="scene-name" aria-live="polite">${scenes[0].title}</span>
-    <div class="filmstrip" role="group" aria-label="Выбрать фон">${scenes.map((s,i) => `<button type="button" aria-label="${s.title}" title="${s.title}" aria-pressed="${!i}"><img src="./media/${s.slug}.webp" alt=""></button>`).join('')}</div></div>
-    </section><section class="services"><div class="section-head"><h2>Игрокам</h2><a href="#criminal">Криминальный кодекс ↗</a></div>
-    <div class="service-list">${items.map(([route,cls,kicker,title,art]) => `<a class="service ${cls}" href="#${route}"><div class="service-text"><span>${kicker}</span><h3>${title}</h3></div><span class="go" aria-hidden="true">↗</span><div class="service-art" aria-hidden="true">${art}</div></a>`).join('')}</div>
-    <div class="quick-registry"><div class="registry-heading"><span class="tile-symbol">${icon('scale')}</span><div><h2>Реестр лицензий</h2><a href="#lawyers">Проверка адвоката ${icon('arrow')}</a></div></div>
-    <form id="home-lookup"><label class="inline-field">${icon('search')}<input type="search" id="home-query" aria-label="Ник, ID или номер лицензии" placeholder="Ник, ID или номер лицензии" required maxlength="100"></label><button type="submit" class="action light">Найти ${icon('arrow')}</button></form></div></section>`;
-  const reel = app.querySelector('.reel');
-  const buttons = [...reel.querySelectorAll('button')];
-  const photos = reel.querySelectorAll('.scene-image');
+  app.innerHTML = `<section class="front-grid" aria-label="Портал игрока">
+      <div class="city-frame" aria-roledescription="карусель" aria-label="Кадры сервера">
+        ${scenes.map((s,i) => `<img class="city-image${i === 0 ? ' selected' : ''}" src="./media/${s.slug}.webp" alt="" ${i ? '' : 'fetchpriority="high"'}>`).join('')}
+        <div class="frame-caption"><span class="focus-mark" aria-hidden="true"></span><span id="scene-name" aria-live="polite">${scenes[0].title}</span></div>
+        <div class="frame-foot"><h1>UKR <b>Israel</b></h1><div class="frame-controls"><button id="prev-scene" type="button" aria-label="Предыдущий кадр">←</button><span id="frame-count">01 / 03</span><button id="next-scene" type="button" aria-label="Следующий кадр">→</button></div></div>
+      </div>
+      <div class="registry-desk"><div class="desk-title">${icon('shield')}<a id="open-registry" href="#verify" aria-label="Открыть реестр">↗</a></div>
+        <h2>Проверка игрока</h2><p>Найдите действующую лицензию или проверьте статус ранее выданной.</p>
+        <form id="home-lookup"><fieldset class="desk-switch"><legend class="sr-only">Где искать</legend><label><input type="radio" name="scope" value="verify" checked><span>Все игроки</span></label><label><input type="radio" name="scope" value="lawyers"><span>Адвокаты</span></label></fieldset>
+          <label class="desk-input">${icon('search')}<input id="home-query" type="search" maxlength="100" required placeholder="Ник, ID или номер лицензии" aria-label="Ник, ID или номер лицензии"></label>
+          <button class="desk-submit" type="submit">Проверить ${icon('arrow')}</button></form>
+      </div>
+      <div class="contact-sheet" role="group" aria-label="Другие кадры сервера">${[1,2].map(i => `<button type="button" class="contact-thumb" data-scene="${i}"><img alt="" src="./media/${scenes[i].slug}.webp"><span>${scenes[i].title}</span></button>`).join('')}</div>
+    </section>
+    <section class="document-shelf"><h2>Правила и службы</h2><nav aria-label="Документы сервера">${docs.map(d => `<a href="#${d.route}"><span class="shelf-icon">${icon(d.symbol)}</span><span class="shelf-copy"><strong>${d.title}</strong><small>${d.detail}</small></span><span class="shelf-arrow" aria-hidden="true">↗</span></a>`).join('')}</nav></section>`;
+  const frame = app.querySelector('.city-frame');
+  const buttons = [...app.querySelectorAll('.contact-thumb')];
+  const photos = [...frame.querySelectorAll('.city-image')];
   let current = 0;
   function select(index) {
-    current = (index + scenes.length) % scenes.length;
-    buttons.forEach((button,i) => {
-      button.setAttribute('aria-pressed',String(i === current));
-      photos[i].classList.toggle('active',i === current);
-    });
-    reel.classList.toggle('alternate',current !== 0);
+    const next = (index + scenes.length) % scenes.length;
+    const thumb = buttons.find(b => Number(b.dataset.scene) === next);
+    if (!thumb) return;
+    const previous = scenes[current];
+    thumb.dataset.scene = current;
+    thumb.querySelector('img').src = './media/' + previous.slug + '.webp';
+    thumb.querySelector('span').textContent = previous.title;
+    current = next;
+    photos.forEach((photo,i) => photo.classList.toggle('selected',i === current));
+    document.getElementById('frame-count').textContent = `0${current + 1} / 03`;
     document.getElementById('scene-name').textContent = scenes[current].title;
   }
-  buttons.forEach((button,i) => button.onclick = () => select(i));
-  reel.onkeydown = event => {
-    if (!event.target.closest('button') || !['ArrowLeft','ArrowRight'].includes(event.key)) return;
-    event.preventDefault(); select(current + (event.key === 'ArrowRight' ? 1 : -1)); buttons[current].focus();
+  buttons.forEach(button => button.onclick = () => select(Number(button.dataset.scene)));
+  document.getElementById('prev-scene').onclick = () => select(current - 1);
+  document.getElementById('next-scene').onclick = () => select(current + 1);
+  frame.onkeydown = e => {
+    if (!['ArrowLeft','ArrowRight'].includes(e.key)) return;
+    e.preventDefault(); select(current + (e.key === 'ArrowRight' ? 1 : -1));
   };
   let start = null;
-  reel.onpointerdown = e => { if (e.isPrimary && !e.target.closest('button')) start = [e.clientX,e.clientY]; };
-  reel.onpointercancel = () => { start = null; };
-  reel.onpointerup = e => {
+  frame.onpointerdown = e => { if (e.isPrimary && !e.target.closest('button')) start = [e.clientX,e.clientY]; };
+  frame.onpointercancel = () => { start = null; };
+  frame.onpointerup = e => {
     if (!start) return;
     const dx = e.clientX - start[0], dy = e.clientY - start[1]; start = null;
     if (Math.abs(dx) > 42 && Math.abs(dx) > Math.abs(dy)*1.4) select(current + (dx < 0 ? 1 : -1));
   };
-  document.getElementById('home-lookup').onsubmit = event => {
+  const form = document.getElementById('home-lookup');
+  const input = document.getElementById('home-query');
+  form.onchange = () => { document.getElementById('open-registry').href = '#' + form.elements.scope.value; };
+  form.onsubmit = event => {
     event.preventDefault();
-    const query = document.getElementById('home-query').value.trim();
-    if (query) location.hash = 'verify/' + encodeURIComponent(query);
+    const query = input.value.trim();
+    if (query) location.hash = form.elements.scope.value + '/' + encodeURIComponent(query);
+    else input.focus();
   };
 }
 
@@ -270,6 +283,10 @@ document.getElementById('menu-toggle').addEventListener('click', () => {
   const menu = document.getElementById('top-nav');
   const open = menu.classList.toggle('open');
   document.getElementById('menu-toggle').setAttribute('aria-expanded', String(open));
+});
+document.querySelector('.skip-link').addEventListener('click', event => {
+  event.preventDefault();
+  document.getElementById('main').focus();
 });
 window.addEventListener('hashchange', render);
 

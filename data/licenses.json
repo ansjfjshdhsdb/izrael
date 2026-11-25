@@ -8,7 +8,8 @@
     {"id": "nps", "name": "НПС", "roles": ["Сотрудник НПС", "Руководитель НПС"]},
     {"id": "city", "name": "Мэрия", "roles": ["Сотрудник мэрии", "Мэр"]},
     {"id": "prosecution", "name": "Прокуратура", "roles": ["Прокурор", "Генеральный прокурор"]},
-    {"id": "mossad", "name": "Моссад", "roles": ["Сотрудник Моссад", "Руководитель Моссад"]}
+    {"id": "mossad", "name": "Моссад", "roles": ["Сотрудник Моссад", "Руководитель Моссад"]},
+    {"id": "bar", "name": "Адвокатура", "roles": ["Адвокат"]}
   ],
   "records": [
     {"id": "ISRP-DEMO-001", "nickname": "Demo_SBS", "faction": "sbs", "role": "Сотрудник СБС", "license": "SBS-DEMO-001", "issuedAt": "2026-01-01", "expiresAt": "2027-01-01", "status": "active", "demo": true},

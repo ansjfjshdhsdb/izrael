@@ -1,39 +1,38 @@
 <!doctype html>
-<html lang="ru" data-theme="isrp">
+<html lang="ru">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0c1725">
-  <meta name="description" content="ISRP UKR Israel: правила сервера, криминальный кодекс, полномочия служб и проверка лицензий.">
-  <title>ISRP — UKR Israel</title>
+  <meta name="theme-color" content="#102f27">
+  <meta name="description" content="Правовой портал игрового сервера ISRP UKR Israel. Документы, проверка игроков и реестр лицензий.">
+  <title>Правовой портал · ISRP</title>
   <link rel="stylesheet" href="./styles.css">
   <script src="./app.js" defer></script>
+  <script src="./admin.js" defer></script>
 </head>
 <body>
-  <a class="skip-link" href="#main">Перейти к содержанию</a>
-  <header class="topbar">
-    <div class="topbar-inner">
-      <a class="brand" href="#home" aria-label="ISRP, главная">
-        <span class="brand-mark" aria-hidden="true">✡</span>
-        <span class="brand-name">ISRP</span>
-        <span class="brand-divider" aria-hidden="true"></span>
-        <span class="brand-region">UKR Israel</span>
-      </a>
-      <button class="btn btn-ghost menu-toggle" type="button" id="menu-toggle" aria-controls="top-nav" aria-expanded="false">Меню</button>
-      <nav class="top-nav" id="top-nav" aria-label="Разделы сайта">
-        <a data-route-link="home" href="#home">Главная</a>
-        <a data-route-link="rules" href="#rules">Правила</a>
-        <a data-route-link="criminal" href="#criminal">Кодекс</a>
-        <a data-route-link="powers" href="#powers">Полномочия</a>
-        <a data-route-link="verify" href="#verify">Проверка игрока</a>
-      </nav>
-    </div>
-  </header>
-
-  <main id="main" class="main-content" tabindex="-1">
-    <div id="app" aria-live="polite"></div>
-  </main>
-
-  <footer class="site-footer"><span>ISRP · UKR Israel</span><span>Документы проекта</span></footer>
+  <a class="skip-link" href="#main">К содержанию</a>
+  <aside id="sidebar" class="sidebar">
+    <a class="brand" href="#home" aria-label="ISRP — на главную"><span class="brand-seal" aria-hidden="true">✡</span><span><strong>ISRP</strong><small>UKR ISRAEL</small></span></a>
+    <nav id="top-nav" aria-label="Основная навигация">
+      <span class="nav-label">Портал</span>
+      <a data-route-link="home" href="#home"><i data-icon="grid"></i>Обзор</a>
+      <a data-route-link="verify" href="#verify"><i data-icon="scan"></i>Проверка игрока</a>
+      <span class="nav-label">Документы</span>
+      <a data-route-link="rules" href="#rules"><i data-icon="book"></i>Правила сервера</a>
+      <a data-route-link="criminal" href="#criminal"><i data-icon="scale"></i>Криминальный кодекс</a>
+      <a data-route-link="powers" href="#powers"><i data-icon="shield"></i>Полномочия служб</a>
+    </nav>
+    <div class="staff-nav"><a data-route-link="admin" href="#admin"><i data-icon="settings"></i>Управление<i data-icon="arrow"></i></a></div>
+  </aside>
+  <button class="scrim" id="scrim" aria-label="Закрыть меню" hidden></button>
+  <div class="workspace">
+    <header class="topline"><div class="breadcrumbs">
+      <button id="menu-toggle" class="menu-toggle" aria-expanded="false" aria-controls="sidebar" aria-label="Открыть меню"><i data-icon="menu"></i></button>
+      <a href="#home">Портал ISRP</a><span aria-hidden="true">/</span><strong id="page-name">Обзор</strong>
+      </div><time id="portal-date"></time></header>
+    <main id="main" tabindex="-1"><div id="app" aria-busy="true"><p class="empty-state">Загружаем портал…</p></div></main>
+    <footer><span>ISRP <b>·</b> UKR Israel</span><span>Игровой правовой портал</span></footer>
+  </div>
 </body>
 </html>

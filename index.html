@@ -3,10 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0c1725">
+  <meta name="theme-color" content="#141717">
   <meta name="description" content="ISRP UKR Israel: правила сервера, криминальный кодекс, полномочия служб и проверка лицензий.">
   <title>ISRP — UKR Israel</title>
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./portal.css">
+  <link rel="icon" href="./media/seal.svg" type="image/svg+xml">
+  <script src="./admin.js" defer></script>
   <script src="./app.js" defer></script>
 </head>
 <body>
@@ -14,7 +17,7 @@
   <header class="topbar">
     <div class="topbar-inner">
       <a class="brand" href="#home" aria-label="ISRP, главная">
-        <span class="brand-mark" aria-hidden="true">✡</span>
+        <img class="brand-seal" src="./media/seal.svg" alt="" width="34" height="34">
         <span class="brand-name">ISRP</span>
         <span class="brand-divider" aria-hidden="true"></span>
         <span class="brand-region">UKR Israel</span>
@@ -26,14 +29,15 @@
         <a data-route-link="criminal" href="#criminal">Кодекс</a>
         <a data-route-link="powers" href="#powers">Полномочия</a>
         <a data-route-link="verify" href="#verify">Проверка игрока</a>
+        <a data-route-link="admin" class="admin-nav" href="#admin">Управление <span aria-hidden="true">↗</span></a>
       </nav>
     </div>
   </header>
 
   <main id="main" class="main-content" tabindex="-1">
-    <div id="app" aria-live="polite"></div>
+    <div id="app"></div>
   </main>
 
-  <footer class="site-footer"><span>ISRP · UKR Israel</span><span>Документы проекта</span></footer>
+  <footer class="site-footer"><a href="#home">ISRP · UKR Israel</a><a href="#admin">Панель управления ↗</a></footer>
 </body>
 </html>

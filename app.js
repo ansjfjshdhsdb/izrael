@@ -1,7 +1,8 @@
 const app = document.getElementById('app');
-const routes = new Set(['home', 'rules', 'criminal', 'powers', 'verify']);
+const routes = new Set(['home', 'rules', 'criminal', 'powers', 'verify', 'lawyers', 'admin']);
 let documents = null;
 let licenses = null;
+let staticRegistry = false;
 
 const escapeHTML = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const normalize = (value) => String(value ?? '').trim().toLocaleLowerCase('ru').replace(/ё/g, 'е');
@@ -26,7 +27,7 @@ const route = () => {
 
 function setNavigation(active) {
   document.querySelectorAll('[data-route-link]').forEach((link) => {
-    const selected = link.dataset.routeLink === active;
+    const selected = link.dataset.routeLink === (active === 'lawyers' ? 'verify' : active);
     link.classList.toggle('active', selected);
     if (selected) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
@@ -36,23 +37,64 @@ function setNavigation(active) {
 }
 
 function intro(title, description = '', detail = '') {
-  return `<header class="page-intro"><div><a class="back-link" href="#home">ISRP <span aria-hidden="true">/</span> Документы проекта</a><h1>${escapeHTML(title)}</h1>${description ? `<p>${escapeHTML(description)}</p>` : ''}</div>${detail ? `<span class="page-detail">${escapeHTML(detail)}</span>` : ''}</header>`;
+  return `<header class="page-intro"><div><a class="back-link" href="#home">ISRP <span aria-hidden="true">/</span> Главная</a><h1>${escapeHTML(title)}</h1>${description ? `<p>${escapeHTML(description)}</p>` : ''}</div>${detail ? `<span class="page-detail">${escapeHTML(detail)}</span>` : ''}</header>`;
 }
 
+const scenes = [
+  {slug: 'bridge', title: 'Ночной мост'},
+  {slug: 'winter', title: 'Зимняя площадь'},
+  {slug: 'boulevard', title: 'Городской бульвар'}
+];
+
 function homeView() {
-  const links = [
-    ['Правила сервера', 'Поведение игроков, ролевая игра и наказания.', `${documents.rules.length} раздел`, 'rules', 'book'],
-    ['Криминальный кодекс', 'Состав преступлений, штрафы и сроки.', `${documents.criminal.length} разделов`, 'criminal', 'scale'],
-    ['Полномочия служб', 'Что разрешено сотрудникам каждой фракции.', `${documents.powers.length} служб`, 'powers', 'shield']
+  const items = [
+    ['verify','verification','Лицензии игроков','Проверить<br>игрока',
+      '<div class="pass-art"><div class="pass-top">ISRP <b>ID</b></div><div class="pass-detail"><i class="id-photo"></i><div class="id-lines"></div></div><div class="barcode"></div></div>'],
+    ['rules','rules',quantity(documents.rules.length,'раздел','раздела','разделов'),'Правила<br>сервера',
+      '<div class="book-art"><small>ISRP</small><b>§</b><i></i></div>'],
+    ['powers','department','Структура сервера','Органы<br>и службы',
+      '<div class="map-art"><div></div><i class="map-marker"></i></div>']
   ];
-  app.innerHTML = `<section class="home-heading"><div class="home-identity"><span class="home-region">UKR Israel</span><h1>ISRP</h1><p>Документы и реестр сотрудников</p></div><div class="home-emblem" aria-hidden="true"><span>✡</span><small>UKR / ISRAEL</small></div></section>
-    <div class="home-layout"><section class="home-documents"><h2 class="section-heading">Документы проекта</h2><nav class="directory" aria-label="Документы проекта">${links.map(([title,description,detail,target,symbol]) => `<a class="directory-row" href="#${target}"><span class="directory-symbol">${icon(symbol)}</span><span class="directory-copy"><strong>${title}</strong><span>${description}</span></span><span class="directory-detail">${detail}</span>${icon('arrow')}</a>`).join('')}</nav></section>
-    <section class="home-registry"><div class="registry-symbol">${icon('person')}</div><h2>Проверка игрока</h2><p>Найдите сотрудника по нику, ID или номеру лицензии.</p><form id="home-lookup"><label for="home-query">Ник, ID или лицензия</label><input class="input" id="home-query" placeholder="Введите данные игрока" required><button class="btn" type="submit">Проверить ${icon('arrow')}</button></form><span class="registry-demo">Реестр содержит тестовые записи</span></section></div>`;
-  document.getElementById('home-lookup').addEventListener('submit',event => {
+  app.innerHTML = `<section class="reel" aria-label="Виды города" aria-roledescription="карусель">
+    ${scenes.map((s,i) => `<img class="scene-image ${i ? '' : 'active'}" src="./media/${s.slug}.webp" alt="" ${i ? '' : 'fetchpriority="high"'}>`).join('')}
+    <h1 class="mastword">ISRAEL RP</h1><img class="foreground" src="./media/bridge-foreground.webp" alt="">
+    <div class="reel-foot"><span id="scene-name" aria-live="polite">${scenes[0].title}</span>
+    <div class="filmstrip" role="group" aria-label="Выбрать фон">${scenes.map((s,i) => `<button type="button" aria-label="${s.title}" title="${s.title}" aria-pressed="${!i}"><img src="./media/${s.slug}.webp" alt=""></button>`).join('')}</div></div>
+    </section><section class="services"><div class="section-head"><h2>Игрокам</h2><a href="#criminal">Криминальный кодекс ↗</a></div>
+    <div class="service-list">${items.map(([route,cls,kicker,title,art]) => `<a class="service ${cls}" href="#${route}"><div class="service-text"><span>${kicker}</span><h3>${title}</h3></div><span class="go" aria-hidden="true">↗</span><div class="service-art" aria-hidden="true">${art}</div></a>`).join('')}</div>
+    <div class="quick-registry"><div class="registry-heading"><span class="tile-symbol">${icon('scale')}</span><div><h2>Реестр лицензий</h2><a href="#lawyers">Проверка адвоката ${icon('arrow')}</a></div></div>
+    <form id="home-lookup"><label class="inline-field">${icon('search')}<input type="search" id="home-query" aria-label="Ник, ID или номер лицензии" placeholder="Ник, ID или номер лицензии" required maxlength="100"></label><button type="submit" class="action light">Найти ${icon('arrow')}</button></form></div></section>`;
+  const reel = app.querySelector('.reel');
+  const buttons = [...reel.querySelectorAll('button')];
+  const photos = reel.querySelectorAll('.scene-image');
+  let current = 0;
+  function select(index) {
+    current = (index + scenes.length) % scenes.length;
+    buttons.forEach((button,i) => {
+      button.setAttribute('aria-pressed',String(i === current));
+      photos[i].classList.toggle('active',i === current);
+    });
+    reel.classList.toggle('alternate',current !== 0);
+    document.getElementById('scene-name').textContent = scenes[current].title;
+  }
+  buttons.forEach((button,i) => button.onclick = () => select(i));
+  reel.onkeydown = event => {
+    if (!event.target.closest('button') || !['ArrowLeft','ArrowRight'].includes(event.key)) return;
+    event.preventDefault(); select(current + (event.key === 'ArrowRight' ? 1 : -1)); buttons[current].focus();
+  };
+  let start = null;
+  reel.onpointerdown = e => { if (e.isPrimary && !e.target.closest('button')) start = [e.clientX,e.clientY]; };
+  reel.onpointercancel = () => { start = null; };
+  reel.onpointerup = e => {
+    if (!start) return;
+    const dx = e.clientX - start[0], dy = e.clientY - start[1]; start = null;
+    if (Math.abs(dx) > 42 && Math.abs(dx) > Math.abs(dy)*1.4) select(current + (dx < 0 ? 1 : -1));
+  };
+  document.getElementById('home-lookup').onsubmit = event => {
     event.preventDefault();
     const query = document.getElementById('home-query').value.trim();
-    if (query) location.hash = `verify/${encodeURIComponent(query)}`;
-  });
+    if (query) location.hash = 'verify/' + encodeURIComponent(query);
+  };
 }
 
 function docView(kind) {
@@ -133,57 +175,94 @@ function powersView() {
   });
 }
 
+async function readRegistry(initial = false) {
+  if (staticRegistry) return licenses;
+  const response = await fetch('./api/registry', {cache:'no-store'});
+  if (initial && [404,405].includes(response.status)) {
+    const seed = await fetch('./data/licenses.json');
+    if (!seed.ok) throw Error();
+    const data = await seed.json();
+    staticRegistry = true;
+    return data;
+  }
+  if (!response.ok) throw Error();
+  return response.json();
+}
+
 function verifyView() {
-  app.innerHTML = `${intro('Проверка игрока', 'Поиск по нику, ID или номеру лицензии.', 'Реестр сотрудников')}
-    <div class="verify-layout"><section class="verify-card"><div class="verify-form-heading">${icon('search')}<div><h2>Поиск в реестре</h2><p>Введите данные сотрудника для проверки лицензии.</p></div></div>
-      <form class="lookup-form" id="lookup-form"><label>Ник, ID или номер лицензии<input class="input" id="lookup-query" type="search" autocomplete="off" placeholder="Например, ISRP-DEMO-001" required></label><label>Фракция<select class="select" id="lookup-faction"><option value="">Все фракции</option>${licenses.factions.map((f) => `<option value="${escapeHTML(f.id)}">${escapeHTML(f.name)}</option>`).join('')}</select></label><label>Роль<select class="select" id="lookup-role"><option value="">Все роли</option></select></label><div class="lookup-actions"><button class="btn" type="submit">Найти</button></div></form>
+  const lawyer = route() === 'lawyers';
+  app.innerHTML = `${intro(lawyer ? 'Проверка адвоката' : 'Проверка игрока', lawyer ? 'Проверьте срок действия адвокатской лицензии игрока.' : 'Найдите лицензию по нику, ID записи или номеру документа.')}
+    <div class="verify-layout"><section class="verify-card">
+      <nav class="segmented" aria-label="Тип проверки"><a href="#verify" ${!lawyer ? 'aria-current="page"' : ''}>Все игроки</a><a href="#lawyers" ${lawyer ? 'aria-current="page"' : ''}>Адвокаты</a></nav>
+      <form class="lookup-form" id="lookup-form"><label>Ник, ID или номер лицензии<input class="input" id="lookup-query" type="search" autocomplete="off" placeholder="Введите данные игрока" maxlength="100" required></label>
+      ${lawyer ? '' : `<label>Организация<select class="select" id="lookup-faction"><option value="">Все организации</option>${licenses.factions.map(f => `<option value="${escapeHTML(f.id)}">${escapeHTML(f.name)}</option>`).join('')}</select></label><label>Роль<select class="select" id="lookup-role"></select></label>`}
+      <div class="lookup-actions"><button class="action primary" type="submit">${icon('search')} Найти лицензию</button></div></form>
       <div id="lookup-results" class="result-wrap" aria-live="polite"></div></section>
-      <aside class="verify-help"><h2>Фракции в реестре</h2><ul class="registry-factions">${licenses.factions.map(f=>`<li>${icon('shield')}<span>${escapeHTML(f.name)}</span></li>`).join('')}</ul><p class="registry-notice">${escapeHTML(licenses.notice)}</p></aside></div>`;
-  const factionSelect = document.getElementById('lookup-faction');
-  const roleSelect = document.getElementById('lookup-role');
+      <aside class="verify-help"><h2>${lawyer ? 'Адвокатская лицензия' : 'Как читать результат'}</h2><p>${lawyer ? 'Поиск в этой вкладке ограничен записями адвокатуры.' : 'В карточке указаны организация, роль игрока, номер лицензии и срок её действия.'}</p><p>${escapeHTML(licenses.notice)}</p>${lawyer ? '' : '<a class="text-link" href="#lawyers">Проверить адвоката ↗</a>'}</aside></div>`;
+  const faction = document.getElementById('lookup-faction');
+  const role = document.getElementById('lookup-role');
+  const query = document.getElementById('lookup-query');
+  const results = document.getElementById('lookup-results');
+  const form = document.getElementById('lookup-form');
   function updateRoles() {
-    const selected = factionSelect.value;
-    const available = selected ? licenses.factions.filter((f) => f.id === selected) : licenses.factions;
-    const roles = [...new Set(available.flatMap((f) => f.roles))];
-    roleSelect.innerHTML = '<option value="">Все роли</option>' + roles.map((role) => `<option value="${escapeHTML(role)}">${escapeHTML(role)}</option>`).join('');
+    if (!role) return;
+    const available = licenses.factions.filter(f => !faction.value || f.id === faction.value);
+    role.innerHTML = '<option value="">Все роли</option>' + [...new Set(available.flatMap(f => f.roles))].map(r => `<option>${escapeHTML(r)}</option>`).join('');
   }
-  factionSelect.addEventListener('change', updateRoles);
+  let requestId = 0;
+  form.addEventListener('input', () => { requestId++; results.replaceChildren(); });
+  faction?.addEventListener('change', updateRoles);
   updateRoles();
-  document.getElementById('lookup-form').addEventListener('submit', (event) => {
+  form.addEventListener('submit', async event => {
     event.preventDefault();
-    const query = normalize(document.getElementById('lookup-query').value);
-    if (!query) return;
-    const faction = factionSelect.value;
-    const role = roleSelect.value;
-    const matches = licenses.records.filter((record) => [record.id,record.nickname,record.license].some((value) => normalize(value).includes(query)) && (!faction || record.faction === faction) && (!role || record.role === role));
-    const results = document.getElementById('lookup-results');
-    results.innerHTML = matches.length ? `<h2 class="result-title">Найдено: ${matches.length}</h2>${matches.map(renderLicense).join('')}` : '<p class="empty-state">Запись не найдена. Проверьте запрос и фильтры.</p>';
+    const term = normalize(query.value);
+    if (!term) { query.focus(); return; }
+    const current = ++requestId;
+    results.textContent = 'Ищем лицензию…';
+    try {
+      const data = await readRegistry();
+      if (requestId !== current || !results.isConnected) return;
+      licenses = data;
+      const organization = lawyer ? 'bar' : faction.value;
+      const matches = data.records.filter(r =>
+        [r.id, r.nickname, r.license].some(v => normalize(v).includes(term)) &&
+        (!organization || r.faction === organization) && (!role?.value || r.role === role.value));
+      results.innerHTML = matches.length ? `<h2 class="result-title">${quantity(matches.length,'запись','записи','записей')}</h2>${matches.map(renderLicense).join('')}` : '<p class="empty-state">Запись не найдена. Проверьте запрос и выбранные фильтры.</p>';
+    } catch {
+      if (current === requestId) results.textContent = 'Не удалось проверить реестр. Попробуйте ещё раз.';
+    }
   });
-  const encodedQuery = location.hash.slice(1).split('/').slice(1).join('/');
-  if (encodedQuery) {
-    let query = encodedQuery;
-    try { query = decodeURIComponent(encodedQuery); } catch {}
-    document.getElementById('lookup-query').value = query;
-    document.getElementById('lookup-form').requestSubmit();
+  const encoded = location.hash.split('/').slice(1).join('/');
+  if (encoded) {
+    try { query.value = decodeURIComponent(encoded); } catch { query.value = encoded; }
+    form.requestSubmit();
   }
+}
+
+function licenseState(record) {
+  const today = new Date().toISOString().slice(0,10);
+  if (record.status === 'revoked') return ['revoked', 'Аннулирована'];
+  if (record.status === 'expired' || record.expiresAt < today) return ['expired', 'Срок истёк'];
+  if (record.issuedAt > today) return ['pending', 'Ещё не действует'];
+  return ['active', 'Действует'];
 }
 
 function renderLicense(record) {
   const faction = licenses.factions.find((item) => item.id === record.faction)?.name || record.faction;
-  const expired = record.status === 'expired' || (record.expiresAt && record.expiresAt < new Date().toISOString().slice(0,10));
-  const status = record.status === 'revoked' ? 'Аннулирована' : expired ? 'Срок истёк' : record.demo ? 'Тестовая запись' : 'Действует';
-  const stateClass = record.status === 'revoked' ? 'revoked' : expired ? 'expired' : '';
-  return `<article class="result-card"><div class="result-top"><div><strong>${escapeHTML(record.nickname)}</strong><small>${escapeHTML(record.id)}</small></div><span class="license-status ${stateClass}">${status}</span></div><div class="result-grid"><div><span>Фракция</span><strong>${escapeHTML(faction)}</strong></div><div><span>Роль</span><strong>${escapeHTML(record.role)}</strong></div><div><span>Лицензия</span><strong>${escapeHTML(record.license)}</strong></div><div><span>Срок действия</span><strong>${escapeHTML(record.issuedAt)} – ${escapeHTML(record.expiresAt)}</strong></div></div>${record.demo ? '<p class="demo-note">Демонстрационная запись. Не подтверждает полномочия реального игрока.</p>' : ''}</article>`;
+  const [stateClass,status] = licenseState(record);
+  return `<article class="result-card"><div class="result-top"><div><strong>${escapeHTML(record.nickname)}</strong><small>${escapeHTML(record.id)}</small></div><span class="license-status ${stateClass}">${record.demo ? 'Демо · ' : ''}${status}</span></div><div class="result-grid"><div><span>Фракция</span><strong>${escapeHTML(faction)}</strong></div><div><span>Роль</span><strong>${escapeHTML(record.role)}</strong></div><div><span>Лицензия</span><strong>${escapeHTML(record.license)}</strong></div><div><span>Срок действия</span><strong>${escapeHTML(record.issuedAt)} – ${escapeHTML(record.expiresAt)}</strong></div></div>${record.demo ? '<p class="demo-note">Демонстрационная запись. Не подтверждает полномочия реального игрока.</p>' : ''}</article>`;
 }
 
 function render() {
   const current = route();
+  document.body.dataset.page = current;
   setNavigation(current);
   if (!documents || !licenses) return;
   if (current === 'home') homeView();
   if (current === 'rules' || current === 'criminal') docView(current);
   if (current === 'powers') powersView();
-  if (current === 'verify') verifyView();
+  if (current === 'verify' || current === 'lawyers') verifyView();
+  if (current === 'admin') adminView();
   window.scrollTo({top: 0, behavior: 'auto'});
 }
 
@@ -196,8 +275,7 @@ window.addEventListener('hashchange', render);
 
 Promise.all([
   fetch('./data/documents.json').then((response) => { if (!response.ok) throw Error('documents'); return response.json(); }),
-  fetch('./data/licenses.json').then((response) => { if (!response.ok) throw Error('licenses'); return response.json(); })
+  readRegistry(true)
 ]).then(([docs, registry]) => { documents = docs; licenses = registry; render(); }).catch(() => {
   app.innerHTML = '<div class="empty-state">Данные не загрузились. Откройте сайт через локальный сервер или статический хостинг.</div>';
 });
-

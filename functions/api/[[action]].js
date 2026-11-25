@@ -1,5 +1,6 @@
 import registry from '../../data/licenses.json';
 import documents from '../../data/documents.json';
+import { activeSession, login } from '../../server/admin-auth.js';
 
 const json = (data, status = 200) => Response.json(data, {
   status, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }
@@ -8,18 +9,10 @@ const fail = (message, status) => json({ error: message }, status);
 const key = value => value.trim().normalize('NFKC').toLocaleLowerCase('ru').replace(/ё/g, 'е');
 const conflict = () => fail('Запись уже изменилась. Обновите страницу и проверьте актуальную версию перед сохранением.', 409);
 
-async function authorized(request, password) {
-  const header = request.headers.get('Authorization') || '';
-  if (!password || !header.startsWith('Bearer ')) return false;
-  const digest = text => crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  const [expected, supplied] = await Promise.all([digest(encodeURIComponent(password)), digest(header.slice(7))]);
-  return crypto.subtle.timingSafeEqual(expected, supplied);
-}
-
 async function loadPortal(env) {
   if (!env.DB) return json({ registry, documents, writable: false });
   const [entries, edits] = await env.DB.batch([
-    env.DB.prepare('SELECT record, version FROM licenses ORDER BY rowid DESC'),
+    env.DB.prepare("SELECT record, version FROM licenses WHERE json_type(record, '$.demo') IS NOT 'true' ORDER BY rowid DESC"),
     env.DB.prepare('SELECT item_key, content, version FROM document_edits')
   ]);
   const docs = structuredClone(documents);
@@ -61,13 +54,10 @@ async function saveRecord(db, input, creating) {
   const license = key(record.license);
   try {
     if (creating) {
-      record.demo = false;
       await db.prepare('INSERT INTO licenses (id_key, license_key, record) VALUES (?, ?, ?)')
         .bind(id, license, JSON.stringify(record)).run();
     } else {
-      const current = await db.prepare('SELECT record, version FROM licenses WHERE id_key = ?').bind(id).first();
-      if (!current || current.version !== input.version) return conflict();
-      record.demo = JSON.parse(current.record).demo;
+      if (!Number.isInteger(input.version) || input.version < 1) return conflict();
       const result = await db.prepare('UPDATE licenses SET license_key = ?, record = ?, version = version + 1 WHERE id_key = ? AND version = ?')
         .bind(license, JSON.stringify(record), id, input.version).run();
       if (!result.meta.changes) return conflict();
@@ -99,10 +89,15 @@ export async function onRequest({ request, env, params }) {
   const action = params.action?.[0];
   try {
     if (action === 'portal' && request.method === 'GET') return await loadPortal(env);
-    if (!['login', 'records', 'documents'].includes(action)) return fail('Страница не найдена.', 404);
+    if (!['login', 'logout', 'records', 'documents'].includes(action)) return fail('Страница не найдена.', 404);
     if (!env.DB || !env.ADMIN_PASSWORD) return fail('Панель управления не подключена.', 503);
-    if (!await authorized(request, env.ADMIN_PASSWORD)) return fail('Проверьте пароль администратора.', 401);
-    if (action === 'login' && request.method === 'POST') return json({ authenticated: true });
+    if (action === 'login') return request.method === 'POST' ? await login(request, env, json) : fail('Метод недоступен.', 405);
+    const session = await activeSession(request, env);
+    if (!session) return fail('Войдите в панель управления.', 401);
+    if (action === 'logout' && request.method === 'POST') {
+      await env.DB.prepare('DELETE FROM admin_sessions WHERE session_key = ?').bind(session).run();
+      return json({ signedOut:true });
+    }
     if ((action === 'records' && ['POST', 'PUT'].includes(request.method)) ||
         (action === 'documents' && request.method === 'PUT')) {
       let input;

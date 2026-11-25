@@ -76,7 +76,7 @@ function licenseState(record) {
   if (record.status === 'revoked') return ['revoked', 'Аннулирована'];
   if (record.status === 'expired' || record.expiresAt < today) return ['expired', 'Истекла'];
   if (record.issuedAt > today) return ['pending', 'Срок не начался'];
-  return record.demo ? ['demo', 'Демозапись'] : ['active', 'Действует'];
+  return ['active', 'Действует'];
 }
 
 function statusBadge(record) {
@@ -86,7 +86,7 @@ function statusBadge(record) {
 
 function licenseTable(records, editable = false) {
   return `<table class="records-table"><thead><tr><th>Игрок</th><th>Фракция</th><th>Статус</th><th><span class="sr-only">Действие</span></th></tr></thead>
-    <tbody>${records.map(r => `<tr><td><div class="identity"><span class="avatar" aria-hidden="true">${escapeHTML(r.nickname.slice(0,2).toLocaleUpperCase('ru'))}</span><div><strong>${escapeHTML(r.nickname)}</strong><small>${escapeHTML(r.id)}${r.demo ? ' · Демо' : ''}</small></div></div></td><td>${escapeHTML(licenses.factions.find(f => f.id === r.faction)?.name || r.faction)}</td><td>${statusBadge(r)}</td><td>${editable ? `<button class="icon-button" type="button" data-edit-id="${escapeHTML(r.id)}" aria-label="Изменить запись ${escapeHTML(r.nickname)}">${icon('edit')}</button>` : `<a class="icon-button" href="#verify/${encodeURIComponent(r.id)}" aria-label="Проверить ${escapeHTML(r.nickname)}">${icon('arrow')}</a>`}</td></tr>`).join('')}</tbody></table>`;
+    <tbody>${records.map(r => `<tr><td><div class="identity"><span class="avatar" aria-hidden="true">${escapeHTML(r.nickname.slice(0,2).toLocaleUpperCase('ru'))}</span><div><strong>${escapeHTML(r.nickname)}</strong><small>${escapeHTML(r.id)}</small></div></div></td><td>${escapeHTML(licenses.factions.find(f => f.id === r.faction)?.name || r.faction)}</td><td>${statusBadge(r)}</td><td>${editable ? `<button class="icon-button" type="button" data-edit-id="${escapeHTML(r.id)}" aria-label="Изменить запись ${escapeHTML(r.nickname)}">${icon('edit')}</button>` : `<a class="icon-button" href="#verify/${encodeURIComponent(r.id)}" aria-label="Проверить ${escapeHTML(r.nickname)}">${icon('arrow')}</a>`}</td></tr>`).join('')}</tbody></table>`;
 }
 
 function docView(kind) {
@@ -171,13 +171,13 @@ function verifyView() {
   app.innerHTML = `${intro('Проверка игрока', 'Проверьте, кому выдана лицензия и действует ли она сейчас.', 'Кабинет адвоката')}
     <div class="verify-layout"><section class="panel"><h2>${icon('scan')}Поиск в реестре</h2>
       <form id="lookup-form" class="form-grid">
-        <label class="full">Ник, ID или номер лицензии<input id="lookup-query" type="search" placeholder="Например, Demo_Judge" required></label>
+        <label class="full">Ник, ID или номер лицензии<input id="lookup-query" type="search" placeholder="Введите ник, ID или номер лицензии" required></label>
         <label>Фракция<select id="lookup-faction"><option value="">Все фракции</option>${licenses.factions.map(f => option(f.id, f.name)).join('')}</select></label>
         <label>Роль<select id="lookup-role"></select></label>
         <div class="full"><button class="btn primary" type="submit">${icon('search')}Проверить</button></div>
       </form><div id="lookup-results" aria-live="polite"></div></section>
     <aside class="panel guide"><div class="icon-tile">${icon('scale')}</div><h2>Проверка адвоката</h2><p>Чтобы найти лицензию адвоката, выберите «Адвокатура» и введите ник, ID игрока или номер лицензии.</p>
-      <button type="button" class="text-link" id="lawyer-filter">Выбрать адвокатуру ${icon('arrow')}</button><hr><p>Записи с пометкой «Демо» предназначены для знакомства с порталом.</p></aside></div>`;
+      <button type="button" class="text-link" id="lawyer-filter">Выбрать адвокатуру ${icon('arrow')}</button></aside></div>`;
   const form = document.getElementById('lookup-form');
   const queryInput = document.getElementById('lookup-query');
   const faction = document.getElementById('lookup-faction');
@@ -228,7 +228,7 @@ function renderLicense(record) {
   const fields = [['Фракция',faction], ['Роль',record.role], ['Лицензия',record.license], ['Период действия', `${record.issuedAt} — ${record.expiresAt}`]];
   return `<article class="result-card"><div class="result-top"><div><strong>${escapeHTML(record.nickname)}</strong><small>${escapeHTML(record.id)}</small></div>${statusBadge(record)}</div>
     <dl class="result-grid">${fields.map(([label,value]) => `<div><dt>${label}</dt><dd>${escapeHTML(value)}</dd></div>`).join('')}</dl>
-    ${record.demo ? '<p class="demo-note">Демо · Эта запись не подтверждает полномочия игрока.</p>' : ''}</article>`;
+    </article>`;
 }
 
 function render() {
@@ -255,7 +255,7 @@ function toggleMenu(open) {
 async function loadPortal() {
   const response = await fetch('./api/portal', { cache: 'no-store' });
   if (response.status === 404 || (response.ok && response.headers.get('content-type')?.includes('text/html'))) {
-    // Preserve public documents and seed licenses on plain static hosts.
+    // Preserve public document and registry access on plain static hosts.
     const load = async name => {
       const res = await fetch(`./data/${name}.json`, { cache: 'no-cache' });
       if (!res.ok) throw Error('Не удалось загрузить данные портала.');

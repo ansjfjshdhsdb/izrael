@@ -1,9 +1,9 @@
-let adminPassword = '';
+let adminSession = null;
 
 function adminView() {
   if (!writable) {
     app.innerHTML = intro('Управление сайтом') + `<section class="panel login"><div class="icon-tile">${icon('lock')}</div><h2>Режим чтения</h2><p>Для редактирования подключите базу D1 и задайте пароль администратора в настройках Cloudflare Pages.</p><a class="text-link" href="#verify">Открыть проверку игрока ${icon('arrow')}</a></section>`;
-  } else if (adminPassword) {
+  } else if (adminSession && adminSession.expiresAt * 1000 > Date.now()) {
     dashboard();
   } else {
     app.innerHTML = intro('Управление сайтом') + `<section class="panel login"><div class="icon-tile">${icon('lock')}</div><h2>Вход администратора</h2><p>Войдите, чтобы выдавать лицензии игрокам и редактировать документы проекта.</p>
@@ -13,32 +13,35 @@ function adminView() {
     form.onsubmit = event => {
       event.preventDefault();
       runForm(form, async () => {
-        const password = form.elements.password.value;
-        await adminRequest('login','POST', {}, password);
+        const session = await adminRequest('login','POST', { password:form.elements.password.value });
+        form.reset();
         if (!form.isConnected) return;
-        adminPassword = password;
+        adminSession = session;
         dashboard();
       });
     };
   }
 }
 
-async function adminRequest(action, method, body, password = adminPassword) {
+async function adminRequest(action, method, body) {
   let response;
   try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (action !== 'login' && adminSession) headers.Authorization = 'Bearer ' + adminSession.token;
     response = await fetch(`./api/${action}`, {
-      method, headers: { 'Authorization': `Bearer ${encodeURIComponent(password)}`, 'Content-Type': 'application/json' },
+      method, headers,
       body: JSON.stringify(body)
     });
   } catch { throw Error('Нет связи с сервером. Проверьте подключение и повторите попытку.'); }
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
     if (response.status === 401 && action !== 'login') {
-      adminPassword = '';
+      adminSession = null;
       if (route() === 'admin') adminView();
     }
     throw Error(data.error || 'Не удалось выполнить запрос.');
   }
+  return response.json();
 }
 
 async function runForm(form, task) {
@@ -54,15 +57,27 @@ async function runForm(form, task) {
 
 function dashboard(notice = '', tab = 'records') {
   const records = licenses.records;
-  const real = records.filter(r => !r.demo);
-  const metrics = [['Всего записей', records.length],['Действующие лицензии', real.filter(r => licenseState(r)[0] === 'active').length],['Адвокаты с лицензией', real.filter(r => r.role === 'Адвокат' && licenseState(r)[0] === 'active').length]];
+  const active = records.filter(r => licenseState(r)[0] === 'active');
+  const metrics = [['Всего записей', records.length],['Действующие лицензии', active.length],['Адвокаты с лицензией', active.filter(r => r.role === 'Адвокат').length]];
   app.innerHTML = `${intro('Управление сайтом', 'Реестр игроков и документы проекта.')}<div class="dashboard-bar"><div class="admin-tabs">
     <button type="button" data-tab="records" aria-pressed="${tab === 'records'}">Игроки</button><button type="button" data-tab="documents" aria-pressed="${tab === 'documents'}">Документы</button></div><button class="text-link" id="logout">Выйти</button></div>
     <p role="status" class="notice"${notice ? '' : ' hidden'}>${escapeHTML(notice)}</p>
     ${tab === 'records' ? `<div class="metrics">${metrics.map(([label, value]) => `<div><span>${label}</span><strong>${value}</strong></div>`).join('')}</div>
     <section><div class="section-head"><h2>Реестр игроков</h2><button class="btn primary" type="button" id="add">${icon('plus')}Добавить игрока</button></div>
     <label class="filter-search">${icon('search')}<input type="search" id="record-search" placeholder="Ник, ID или лицензия" aria-label="Поиск записи"></label><div id="admin-records" class="table-box"></div></section>` : '<section id="doc-editor"></section>'}`;
-  document.getElementById('logout').onclick = () => { adminPassword = ''; adminView(); };
+  document.getElementById('logout').onclick = async event => {
+    event.currentTarget.disabled = true;
+    try {
+      await adminRequest('logout', 'POST', {});
+      adminSession = null;
+      if (route() === 'admin') adminView();
+    } catch (error) {
+      const message = app.querySelector('.notice');
+      if (message) { message.hidden = false; message.textContent = error.message; }
+      const button = document.getElementById('logout');
+      if (button) button.disabled = false;
+    }
+  };
   document.querySelectorAll('[data-tab]').forEach(button => { button.onclick = () => dashboard('', button.dataset.tab); });
   if (tab === 'documents') { documentEditor(); return; }
   document.getElementById('add').onclick = () => recordEditor();

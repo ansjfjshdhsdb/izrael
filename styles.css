@@ -94,7 +94,6 @@ footer b { padding-inline:5px; }
 .license-status::before { content:""; width:5px; height:5px; background:currentColor; border-radius:50%; }
 .license-status.expired,.license-status.pending { color:#7a501f; background:#f5ead6; }
 .license-status.revoked { color:#8a3e36; background:#f5e2dd; }
-.license-status.demo { color:#4e615e; background:#e5ece8; }
 .icon-button,.menu-toggle { border:1px solid var(--line); border-radius:6px; background:var(--surface); width:32px; height:32px; align-items:center; justify-content:center; }
 .icon-button { display:inline-flex; }
 .icon-button:hover { background:#ecf0e5; }
@@ -124,7 +123,6 @@ select { text-overflow:ellipsis; }
 .result-grid { margin:16px 0 0; display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .result-grid dt { color:var(--muted); font-size:11px; }
 .result-grid dd { margin:0; font-weight:550; }
-.panel .demo-note { font-size:12px; margin-top:15px; }
 .doc-layout { grid-template-columns:minmax(150px,225px) minmax(0,1fr); }
 .doc-index { position:sticky; top:15px; max-height:calc(100dvh - 30px); overflow-y:auto; padding:15px 10px; scrollbar-width:thin; }
 .doc-index p { font-weight:650; display:flex; gap:8px; align-items:center; margin:0 7px 10px; }

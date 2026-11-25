@@ -8,7 +8,7 @@
   <title>ISRP — UKR Israel</title>
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./portal.css">
-  <link rel="icon" href="./media/seal.svg" type="image/svg+xml">
+  <link rel="icon" href="./media/isrp.png" type="image/png">
   <script src="./admin.js" defer></script>
   <script src="./app.js" defer></script>
 </head>
@@ -16,20 +16,16 @@
   <a class="skip-link" href="#main">Перейти к содержанию</a>
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="brand" href="#home" aria-label="ISRP, главная">
-        <img class="brand-seal" src="./media/seal.svg" alt="" width="34" height="34">
+      <a class="brand" data-route-link="home" href="#home" aria-label="ISRP, главная">
         <span class="brand-name">ISRP</span>
-        <span class="brand-divider" aria-hidden="true"></span>
-        <span class="brand-region">UKR Israel</span>
       </a>
       <button class="btn btn-ghost menu-toggle" type="button" id="menu-toggle" aria-controls="top-nav" aria-expanded="false">Меню</button>
       <nav class="top-nav" id="top-nav" aria-label="Разделы сайта">
-        <a data-route-link="home" href="#home">Главная</a>
         <a data-route-link="rules" href="#rules">Правила</a>
         <a data-route-link="criminal" href="#criminal">Кодекс</a>
         <a data-route-link="powers" href="#powers">Полномочия</a>
         <a data-route-link="verify" href="#verify">Проверка игрока</a>
-        <a data-route-link="admin" class="admin-nav" href="#admin">Управление <span aria-hidden="true">↗</span></a>
+        <a data-route-link="admin" class="admin-nav" href="#admin">Управление</a>
       </nav>
     </div>
   </header>
@@ -38,6 +34,6 @@
     <div id="app"></div>
   </main>
 
-  <footer class="site-footer"><a href="#home">ISRP · UKR Israel</a><a href="#admin">Панель управления ↗</a></footer>
+  <footer class="site-footer"><a href="#home">UKR Israel</a><a href="#admin">Панель управления</a></footer>
 </body>
 </html>

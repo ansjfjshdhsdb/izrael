@@ -12,7 +12,7 @@ async function adminRequest(endpoint, method = 'GET', payload) {
   return data;
 }
 
-function adminIntro() { return intro('Панель управления','Реестр игроков и лицензий UKR Israel.'); }
+function adminIntro() { return intro('Панель управления'); }
 
 async function adminView() {
   app.innerHTML = adminIntro() + '<p class="empty-state" role="status">Проверяем доступ…</p>';
@@ -34,12 +34,12 @@ async function adminView() {
 
 function renderLogin(state) {
   const setup = state.canSetup;
-  app.innerHTML = adminIntro() + `<section class="access-card"><div class="access-photo"><img src="./media/bridge.webp" alt=""><span>${icon('shield')} ISRP</span></div><div class="access-form">
+  app.innerHTML = adminIntro() + `<section class="access-card"><div class="access-form">
     <h2>${setup ? 'Создайте пароль' : 'Вход администратора'}</h2>
-    ${state.configured || setup ? `<p>${setup ? 'Этот пароль понадобится для входа с другого устройства.' : 'Введите пароль для работы с реестром.'}</p>
+    ${state.configured || setup ? `
     <form id="login-form"><label>Пароль<input name="password" type="password" required minlength="12" maxlength="256" autocomplete="${setup ? 'new-password' : 'current-password'}"></label>
     ${setup ? '<label>Повторите пароль<input name="confirm" type="password" autocomplete="new-password" required></label><small>От 12 до 256 символов.</small>' : ''}
-    <p role="alert" class="form-error"></p><button class="action primary" type="submit">${setup ? 'Создать пароль и войти' : 'Войти в панель'} ${icon('arrow')}</button></form>` : '<p>Первый вход настраивается владельцем в закрытом превью или на сервере.</p>'}
+    <p role="alert" class="form-error"></p><button class="action primary" type="submit">${setup ? 'Создать пароль и войти' : 'Войти'} </button></form>` : '<p>Первый вход настраивается владельцем в закрытом превью или на сервере.</p>'}
     </div></section>`;
   const form = document.getElementById('login-form');
   form?.addEventListener('submit', async event => {
@@ -63,11 +63,11 @@ function renderDashboard(message = '', saved = null) {
   const real = records.filter(r => !r.demo);
   const active = real.filter(r => licenseState(r)[0] === 'active');
   const stats = [['Игроки', new Set(real.map(r => normalize(r.nickname))).size],
-    ['Действующие лицензии',active.length], ['Действующие адвокатские',active.filter(r => r.faction === 'bar').length]];
+    ['Действующие лицензии',active.length], ['Адвокатские лицензии',active.filter(r => r.faction === 'bar').length]];
   app.innerHTML = `${adminIntro()}<div class="admin-stats">${stats.map(([label,count]) => `<div><span>${label}</span><strong>${count}</strong></div>`).join('')}</div>
-    <section class="admin-panel"><div class="panel-heading"><div><h2>Записи реестра</h2><p>В статистике учитываются записи реальных игроков.</p></div><button id="add-record" class="action primary">+ Добавить игрока</button></div>
-    <p class="save-notice" role="status">${escapeHTML(message)}${saved ? ` <a class="text-link" href="#${saved.faction === 'bar' ? 'lawyers' : 'verify'}/${encodeURIComponent(saved.id)}">Проверить запись ↗</a>` : ''}</p>
-    <label class="inline-field admin-search">${icon('search')}<input type="search" id="admin-query" placeholder="Поиск по реестру" aria-label="Поиск по реестру"></label>
+    <section class="admin-panel"><div class="panel-heading"><div><h2>Записи реестра</h2><p>В статистике учитываются записи реальных игроков.</p></div><button id="add-record" class="action primary">Добавить игрока</button></div>
+    <p class="save-notice" role="status">${escapeHTML(message)}${saved ? ` <a class="text-link" href="#${saved.faction === 'bar' ? 'lawyers' : 'verify'}/${encodeURIComponent(saved.id)}">Проверить запись</a>` : ''}</p>
+    <label class="inline-field admin-search"><input type="search" id="admin-query" placeholder="Поиск по реестру" aria-label="Поиск по реестру"></label>
     <div class="records-list" id="admin-list"></div><div class="panel-bottom"><small id="admin-count"></small><button class="quiet" id="sign-out">Выйти из панели</button></div></section>`;
   const list = document.getElementById('admin-list');
   const search = document.getElementById('admin-query');
@@ -76,7 +76,7 @@ function renderDashboard(message = '', saved = null) {
     const matches = records.filter(r => [r.nickname,r.license,r.id,r.role].some(v => normalize(v).includes(term)));
     list.innerHTML = matches.map(r => {
       const [cls,status] = licenseState(r);
-      return `<button type="button" class="admin-row" data-record="${escapeHTML(r.id)}"><span><b>${escapeHTML(r.nickname)}</b><small>${escapeHTML(r.role)} · ${escapeHTML(r.license)}</small></span><span class="license-status ${cls}">${r.demo ? 'Демо · ' : ''}${status}</span><span class="edit-mark" aria-hidden="true">↗</span><span class="sr-only">Редактировать</span></button>`;
+      return `<button type="button" class="admin-row" data-record="${escapeHTML(r.id)}"><span><b>${escapeHTML(r.nickname)}</b><small>${escapeHTML(r.role)} · ${escapeHTML(r.license)}</small></span><span class="license-status ${cls}">${r.demo ? 'Демо · ' : ''}${status}</span><span class="edit-mark">Изменить</span></button>`;
     }).join('') || '<p class="empty-state">Записей по запросу нет.</p>';
     document.getElementById('admin-count').textContent = quantity(matches.length, 'запись', 'записи', 'записей');
   }

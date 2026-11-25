@@ -11,15 +11,6 @@ const quantity = (number, one, few, many) => {
   const last = number % 10;
   return `${number} ${lastTwo >= 11 && lastTwo <= 14 ? many : last === 1 ? one : last >= 2 && last <= 4 ? few : many}`;
 };
-const icons = {
-  book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 3H20v19H6.5A2.5 2.5 0 0 1 4 19.5v-14A2.5 2.5 0 0 1 6.5 3Z"/><path d="M8 7h8M8 11h6"/>',
-  scale: '<path d="M12 3v17M5 20h14M4 7h16M6 7l-4 7h8L6 7ZM18 7l-4 7h8l-4-7Z"/>',
-  shield: '<path d="M12 3 3 7v5c0 5 9 9 9 9s9-4 9-9V7l-9-4Z"/><path d="m8 12 3 3 5-6"/>',
-  search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',
-  person: '<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/>',
-  arrow: '<path d="M5 12h14m-6-6 6 6-6 6"/>'
-};
-const icon = name => `<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name] || icons.book}</svg>`;
 const route = () => {
   const value = location.hash.slice(1).split('/')[0];
   return routes.has(value) ? value : 'home';
@@ -37,7 +28,7 @@ function setNavigation(active) {
 }
 
 function intro(title, description = '', detail = '') {
-  return `<header class="page-intro"><div><a class="back-link" href="#home">ISRP <span aria-hidden="true">/</span> Главная</a><h1>${escapeHTML(title)}</h1>${description ? `<p>${escapeHTML(description)}</p>` : ''}</div>${detail ? `<span class="page-detail">${escapeHTML(detail)}</span>` : ''}</header>`;
+  return `<header class="page-intro"><div><a class="back-link" href="#home">На главную</a><h1>${escapeHTML(title)}</h1>${description ? `<p>${escapeHTML(description)}</p>` : ''}</div>${detail ? `<span class="page-detail">${escapeHTML(detail)}</span>` : ''}</header>`;
 }
 
 const scenes = [
@@ -47,65 +38,72 @@ const scenes = [
 ];
 
 function homeView() {
-  const docs = [
-    {route:'rules',title:'Правила сервера',detail:quantity(documents.rules.length,'раздел','раздела','разделов'),symbol:'book'},
-    {route:'criminal',title:'Криминальный кодекс',detail:quantity(documents.criminal.length,'раздел','раздела','разделов'),symbol:'scale'},
-    {route:'powers',title:'Полномочия служб',detail:quantity(documents.powers.length,'служба','службы','служб'),symbol:'shield'}
+  const directories = [
+    ['rules', 'Правила сервера', quantity(documents.rules.length, 'раздел', 'раздела', 'разделов')],
+    ['criminal', 'Криминальный кодекс', quantity(documents.criminal.length, 'раздел', 'раздела', 'разделов')],
+    ['powers', 'Полномочия служб', quantity(documents.powers.length, 'служба', 'службы', 'служб')]
   ];
-  app.innerHTML = `<section class="front-grid" aria-label="Портал игрока">
-      <div class="city-frame" aria-roledescription="карусель" aria-label="Кадры сервера">
-        ${scenes.map((s,i) => `<img class="city-image${i === 0 ? ' selected' : ''}" src="./media/${s.slug}.webp" alt="" ${i ? '' : 'fetchpriority="high"'}>`).join('')}
-        <div class="frame-caption"><span class="focus-mark" aria-hidden="true"></span><span id="scene-name" aria-live="polite">${scenes[0].title}</span></div>
-        <div class="frame-foot"><h1>UKR <b>Israel</b></h1><div class="frame-controls"><button id="prev-scene" type="button" aria-label="Предыдущий кадр">←</button><span id="frame-count">01 / 03</span><button id="next-scene" type="button" aria-label="Следующий кадр">→</button></div></div>
-      </div>
-      <div class="registry-desk"><div class="desk-title">${icon('shield')}<a id="open-registry" href="#verify" aria-label="Открыть реестр">↗</a></div>
-        <h2>Проверка игрока</h2><p>Найдите действующую лицензию или проверьте статус ранее выданной.</p>
-        <form id="home-lookup"><fieldset class="desk-switch"><legend class="sr-only">Где искать</legend><label><input type="radio" name="scope" value="verify" checked><span>Все игроки</span></label><label><input type="radio" name="scope" value="lawyers"><span>Адвокаты</span></label></fieldset>
-          <label class="desk-input">${icon('search')}<input id="home-query" type="search" maxlength="100" required placeholder="Ник, ID или номер лицензии" aria-label="Ник, ID или номер лицензии"></label>
-          <button class="desk-submit" type="submit">Проверить ${icon('arrow')}</button></form>
-      </div>
-      <div class="contact-sheet" role="group" aria-label="Другие кадры сервера">${[1,2].map(i => `<button type="button" class="contact-thumb" data-scene="${i}"><img alt="" src="./media/${scenes[i].slug}.webp"><span>${scenes[i].title}</span></button>`).join('')}</div>
+  const descriptions = [
+    'Освещённый мост, грузовик и высотка на ночной набережной.',
+    'Полицейские машины и пожарная лестница на заснеженной площади.',
+    'Машины на стоянке у бульвара с пальмами.'
+  ];
+  app.innerHTML = `<header class="portal-intro">
+      <h1>UKR Israel</h1>
+      <form id="home-lookup" class="quick-check">
+        <div class="check-label"><label for="home-query">Проверка игрока</label><a id="attorney-link" href="#lawyers">Проверить адвоката</a></div>
+        <div class="check-field"><input id="home-query" type="search" maxlength="100" placeholder="Ник, ID или номер лицензии" required><button type="submit">Найти</button></div>
+      </form>
+    </header>
+    <section class="city-gallery" aria-label="Кадры UKR Israel" aria-roledescription="карусель">
+      <div class="city-frame">${scenes.map((scene,i) => `<img class="city-image${i === 0 ? ' selected' : ''}" src="./media/${scene.slug}.webp" alt="${descriptions[i]}" aria-hidden="${i !== 0}" ${i ? '' : 'fetchpriority="high"'}>`).join('')}</div>
+      <div class="scene-selector" role="group" aria-label="Выбрать кадр">${scenes.map((scene,i) => `<button type="button" aria-pressed="${i === 0}">${scene.title}</button>`).join('')}</div>
     </section>
-    <section class="document-shelf"><h2>Правила и службы</h2><nav aria-label="Документы сервера">${docs.map(d => `<a href="#${d.route}"><span class="shelf-icon">${icon(d.symbol)}</span><span class="shelf-copy"><strong>${d.title}</strong><small>${d.detail}</small></span><span class="shelf-arrow" aria-hidden="true">↗</span></a>`).join('')}</nav></section>`;
-  const frame = app.querySelector('.city-frame');
-  const buttons = [...app.querySelectorAll('.contact-thumb')];
-  const photos = [...frame.querySelectorAll('.city-image')];
+    <nav class="document-links" aria-label="Документы сервера">${directories.map(([route,title,count]) => `<a href="#${route}"><strong>${title}</strong><small>${count}</small></a>`).join('')}</nav>`;
+
+  const gallery = app.querySelector('.city-gallery');
+  const photos = [...gallery.querySelectorAll('.city-image')];
+  const buttons = [...gallery.querySelectorAll('button')];
   let current = 0;
   function select(index) {
-    const next = (index + scenes.length) % scenes.length;
-    const thumb = buttons.find(b => Number(b.dataset.scene) === next);
-    if (!thumb) return;
-    const previous = scenes[current];
-    thumb.dataset.scene = current;
-    thumb.querySelector('img').src = './media/' + previous.slug + '.webp';
-    thumb.querySelector('span').textContent = previous.title;
-    current = next;
-    photos.forEach((photo,i) => photo.classList.toggle('selected',i === current));
-    document.getElementById('frame-count').textContent = `0${current + 1} / 03`;
-    document.getElementById('scene-name').textContent = scenes[current].title;
+    current = (index + scenes.length) % scenes.length;
+    buttons.forEach((button,i) => {
+      const selected = current === i;
+      button.setAttribute('aria-pressed', String(selected));
+      photos[i].classList.toggle('selected', selected);
+      photos[i].setAttribute('aria-hidden', String(!selected));
+    });
   }
-  buttons.forEach(button => button.onclick = () => select(Number(button.dataset.scene)));
-  document.getElementById('prev-scene').onclick = () => select(current - 1);
-  document.getElementById('next-scene').onclick = () => select(current + 1);
-  frame.onkeydown = e => {
-    if (!['ArrowLeft','ArrowRight'].includes(e.key)) return;
-    e.preventDefault(); select(current + (e.key === 'ArrowRight' ? 1 : -1));
-  };
-  let start = null;
-  frame.onpointerdown = e => { if (e.isPrimary && !e.target.closest('button')) start = [e.clientX,e.clientY]; };
-  frame.onpointercancel = () => { start = null; };
-  frame.onpointerup = e => {
-    if (!start) return;
-    const dx = e.clientX - start[0], dy = e.clientY - start[1]; start = null;
-    if (Math.abs(dx) > 42 && Math.abs(dx) > Math.abs(dy)*1.4) select(current + (dx < 0 ? 1 : -1));
-  };
-  const form = document.getElementById('home-lookup');
-  const input = document.getElementById('home-query');
-  form.onchange = () => { document.getElementById('open-registry').href = '#' + form.elements.scope.value; };
-  form.onsubmit = event => {
+  buttons.forEach((button,i) => button.onclick = () => select(i));
+  gallery.onkeydown = event => {
+    if (!['ArrowLeft','ArrowRight'].includes(event.key)) return;
     event.preventDefault();
-    const query = input.value.trim();
-    if (query) location.hash = form.elements.scope.value + '/' + encodeURIComponent(query);
+    select(current + (event.key === 'ArrowRight' ? 1 : -1));
+    buttons[current].focus();
+  };
+  const frame = gallery.querySelector('.city-frame');
+  let start = null;
+  frame.onpointerdown = event => {
+    if (event.isPrimary) start = [event.clientX,event.clientY];
+  };
+  frame.onpointercancel = () => { start = null; };
+  frame.onpointerup = event => {
+    if (!start) return;
+    const dx = event.clientX - start[0];
+    const dy = event.clientY - start[1];
+    start = null;
+    if (Math.abs(dx) > 42 && Math.abs(dx) > Math.abs(dy) * 1.4) select(current + (dx < 0 ? 1 : -1));
+  };
+  const input = document.getElementById('home-query');
+  const lawyerLink = document.getElementById('attorney-link');
+  input.oninput = () => {
+    const term = input.value.trim();
+    lawyerLink.hash = term ? 'lawyers/' + encodeURIComponent(term) : 'lawyers';
+  };
+  document.getElementById('home-lookup').onsubmit = event => {
+    event.preventDefault();
+    const term = input.value.trim();
+    if (term) location.hash = 'verify/' + encodeURIComponent(term);
     else input.focus();
   };
 }
@@ -115,7 +113,7 @@ function docView(kind) {
   const chapters = documents[kind];
   const total = chapters.reduce((sum, chapter) => sum + chapter.items.length, 0);
   app.innerHTML = `${intro(isRules ? 'Правила сервера' : 'Криминальный кодекс', isRules ? 'Нарушения и наказания по разделам.' : 'Статьи, штрафы и сроки наказаний.', `${quantity(chapters.length,'раздел','раздела','разделов')} · ${quantity(total,'пункт','пункта','пунктов')}`)}
-    <div class="doc-layout"><nav class="doc-index" aria-label="Главы документа"><p>${icon('book')} Содержание</p>${chapters.map((chapter) => `<a href="#chapter-${kind}-${chapter.number}"><span>${chapter.number}</span>${escapeHTML(chapter.title)}</a>`).join('')}</nav><div class="doc-main"><div class="mobile-chapter-picker"><select class="select" id="chapter-select" aria-label="Перейти к разделу"><option value="">Выберите раздел</option>${chapters.map(chapter => `<option value="${chapter.number}">${chapter.number}. ${escapeHTML(chapter.title)}</option>`).join('')}</select></div><div class="doc-toolbar"><label class="document-search">${icon('search')}<input class="input" id="doc-search" type="search" placeholder="Номер или текст пункта" aria-label="Поиск по документу"></label><button class="btn btn-ghost expand-button" id="expand-all" type="button">Раскрыть все</button></div><div class="document-caption"><span id="doc-count"></span><span>Нажмите на название, чтобы открыть раздел</span></div><div id="chapters"></div></div></div>`;
+    <div class="doc-layout"><nav class="doc-index" aria-label="Главы документа"><p>Содержание</p>${chapters.map((chapter) => `<a href="#chapter-${kind}-${chapter.number}"><span>${chapter.number}</span>${escapeHTML(chapter.title)}</a>`).join('')}</nav><div class="doc-main"><div class="mobile-chapter-picker"><select class="select" id="chapter-select" aria-label="Перейти к разделу"><option value="">Выберите раздел</option>${chapters.map(chapter => `<option value="${chapter.number}">${chapter.number}. ${escapeHTML(chapter.title)}</option>`).join('')}</select></div><div class="doc-toolbar"><label class="document-search"><input class="input" id="doc-search" type="search" placeholder="Номер или текст пункта" aria-label="Поиск по документу"></label><button class="btn btn-ghost expand-button" id="expand-all" type="button">Раскрыть все</button></div><div class="document-caption"><span id="doc-count"></span></div><div id="chapters"></div></div></div>`;
   const search = document.getElementById('doc-search');
   const list = document.getElementById('chapters');
   const count = document.getElementById('doc-count');
@@ -177,7 +175,7 @@ function powersView() {
     <div class="powers-list">${documents.powers.map((group,index) => {
       const allowed = group.items.filter(item => !item.startsWith('Не имеет права'));
       const restricted = group.items.filter(item => item.startsWith('Не имеет права'));
-      return `<section class="power-row" id="service-${index}"><header class="service-heading"><span class="service-seal" aria-hidden="true">${escapeHTML(group.title.length <= 3 ? group.title : group.title.slice(0,1))}</span><h2>${escapeHTML(names[group.title] || group.title)}</h2><span class="service-context">Органы и службы ISRP</span></header><div class="service-content"><h3>Полномочия</h3><ul class="permissions-list">${allowed.map(item => `<li><span class="permission-mark" aria-hidden="true">✓</span><span>${escapeHTML(item)}</span></li>`).join('')}</ul>${restricted.length ? `<div class="service-restrictions"><h3>Ограничения</h3>${restricted.map(item => `<p>${escapeHTML(item)}</p>`).join('')}</div>` : ''}</div></section>`;
+      return `<section class="power-row" id="service-${index}"><header class="service-heading"><h2>${escapeHTML(names[group.title] || group.title)}</h2></header><div class="service-content"><h3>Полномочия</h3><ul class="permissions-list">${allowed.map(item => `<li><span>${escapeHTML(item)}</span></li>`).join('')}</ul>${restricted.length ? `<div class="service-restrictions"><h3>Ограничения</h3>${restricted.map(item => `<p>${escapeHTML(item)}</p>`).join('')}</div>` : ''}</div></section>`;
     }).join('')}</div>`;
   document.querySelector('.service-nav').addEventListener('click', event => {
     const link = event.target.closest('a');
@@ -204,14 +202,14 @@ async function readRegistry(initial = false) {
 
 function verifyView() {
   const lawyer = route() === 'lawyers';
-  app.innerHTML = `${intro(lawyer ? 'Проверка адвоката' : 'Проверка игрока', lawyer ? 'Проверьте срок действия адвокатской лицензии игрока.' : 'Найдите лицензию по нику, ID записи или номеру документа.')}
+  app.innerHTML = `${intro(lawyer ? 'Проверка адвоката' : 'Проверка игрока')}
     <div class="verify-layout"><section class="verify-card">
       <nav class="segmented" aria-label="Тип проверки"><a href="#verify" ${!lawyer ? 'aria-current="page"' : ''}>Все игроки</a><a href="#lawyers" ${lawyer ? 'aria-current="page"' : ''}>Адвокаты</a></nav>
-      <form class="lookup-form" id="lookup-form"><label>Ник, ID или номер лицензии<input class="input" id="lookup-query" type="search" autocomplete="off" placeholder="Введите данные игрока" maxlength="100" required></label>
+      <form class="lookup-form" id="lookup-form"><label>Ник, ID или номер лицензии<input class="input" id="lookup-query" type="search" autocomplete="off" placeholder="Например, Demo_Judge" maxlength="100" required></label>
       ${lawyer ? '' : `<label>Организация<select class="select" id="lookup-faction"><option value="">Все организации</option>${licenses.factions.map(f => `<option value="${escapeHTML(f.id)}">${escapeHTML(f.name)}</option>`).join('')}</select></label><label>Роль<select class="select" id="lookup-role"></select></label>`}
-      <div class="lookup-actions"><button class="action primary" type="submit">${icon('search')} Найти лицензию</button></div></form>
+      <div class="lookup-actions"><button class="action primary" type="submit">Найти лицензию</button></div></form>
       <div id="lookup-results" class="result-wrap" aria-live="polite"></div></section>
-      <aside class="verify-help"><h2>${lawyer ? 'Адвокатская лицензия' : 'Как читать результат'}</h2><p>${lawyer ? 'Поиск в этой вкладке ограничен записями адвокатуры.' : 'В карточке указаны организация, роль игрока, номер лицензии и срок её действия.'}</p><p>${escapeHTML(licenses.notice)}</p>${lawyer ? '' : '<a class="text-link" href="#lawyers">Проверить адвоката ↗</a>'}</aside></div>`;
+      </div>`;
   const faction = document.getElementById('lookup-faction');
   const role = document.getElementById('lookup-role');
   const query = document.getElementById('lookup-query');

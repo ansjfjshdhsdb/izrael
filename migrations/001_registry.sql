@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS licenses (
+  id_key TEXT PRIMARY KEY,
+  license_key TEXT NOT NULL UNIQUE,
+  record TEXT NOT NULL,
+  version INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS document_edits (
+  item_key TEXT PRIMARY KEY,
+  content TEXT NOT NULL,
+  version INTEGER NOT NULL DEFAULT 1
+);

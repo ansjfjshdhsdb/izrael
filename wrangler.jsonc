@@ -1,0 +1,9 @@
+{
+  "name": "izrael",
+  "main": "server/worker.js",
+  "compatibility_date": "2026-03-01",
+  "keep_vars": true,
+  "build": { "command": "node scripts/build.js" },
+  "assets": { "directory": "./dist", "binding": "ASSETS", "run_worker_first": ["/api/*"] },
+  "d1_databases": [{ "binding": "DB" }]
+}

@@ -203,11 +203,13 @@ function powersView() {
 async function readRegistry(initial = false) {
   if (staticRegistry) return licenses;
   const response = await fetch('./api/registry', {cache:'no-store'});
-  if (initial && [404,405].includes(response.status)) {
+  if (initial && ([404,405].includes(response.status) || response.status === 503)) {
     const seed = await fetch('./data/licenses.json');
     if (!seed.ok) throw Error();
     const data = await seed.json();
-    staticRegistry = true;
+    // An unavailable live database should not prevent opening the admin or rules pages.
+    staticRegistry = response.status !== 503;
+    if (!staticRegistry) data.records = [];
     return data;
   }
   if (!response.ok) throw Error();

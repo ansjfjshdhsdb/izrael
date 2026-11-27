@@ -1,0 +1,14 @@
+{
+  "name": "isrp-portal",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/worker.test.js",
+    "build": "node scripts/build.js",
+    "preview": "wrangler dev"
+  },
+  "devDependencies": {
+    "miniflare": "4.20260625.0",
+    "wrangler": "4.105.0"
+  }
+}

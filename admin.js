@@ -39,7 +39,7 @@ function renderLogin(state) {
     ${state.configured || setup ? `
     <form id="login-form"><label>Пароль<input name="password" type="password" required minlength="12" maxlength="256" autocomplete="${setup ? 'new-password' : 'current-password'}"></label>
     ${setup ? '<label>Повторите пароль<input name="confirm" type="password" autocomplete="new-password" required></label><small>От 12 до 256 символов.</small>' : ''}
-    <p role="alert" class="form-error"></p><button class="action primary" type="submit">${setup ? 'Создать пароль и войти' : 'Войти'} </button></form>` : '<p>Первый вход настраивается владельцем в закрытом превью или на сервере.</p>'}
+    <p role="alert" class="form-error"></p><button class="action primary" type="submit">${setup ? 'Создать пароль и войти' : 'Войти'} </button></form>` : `<p>${escapeHTML(state.setupMessage || 'Первый вход настраивается владельцем в закрытом превью или на сервере.')}</p>`}
     </div></section>`;
   const form = document.getElementById('login-form');
   form?.addEventListener('submit', async event => {

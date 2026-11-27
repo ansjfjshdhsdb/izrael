@@ -2,3 +2,7 @@ node_modules/
 .venv/
 __pycache__/
 *.sqlite3*
+.wrangler/
+dist/
+.dev.vars*
+.env*
